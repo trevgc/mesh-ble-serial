@@ -1,44 +1,30 @@
-import meshtastic
-import meshtastic.serial_interface
+import meshtastic.util
+import time
+import logging
 
-# By default will try to find a meshtastic device,
-# otherwise provide a device path like /dev/ttyUSB0
-interface = meshtastic.serial_interface.SerialInterface(devPath = "COM11")
+# Enable logging
+logging.basicConfig(level=logging.DEBUG)
 
-def on_receive(packet, iface):
-    """Callback function that runs when a message is received"""
-    if 'decoded' in packet and 'payload' in packet['decoded']:
-        payload = packet['decoded']['payload']
-        if 'text' in payload:
-            message = payload['text']
-        elif 'data' in payload:
-                message = payload['data']
-        else:
-             message = "Unknown message type"
-        sender = packet.get('fromId', 'Unknown')
-        print(f"📩 Received from {sender}: {message}")
+def on_receive(packet, interface):
+    """Callback function to handle received messages."""
+    logging.info(f"Received message: {packet}")
+    if 'decoded' in packet:
+        logging.info(f"Decoded message: {packet['decoded']['payload'].decode('utf-8')}")
 
-#register callback so it listens for incoming messages
+# Create an instance of SerialInterface
+interface = meshtastic.serial_interface.SerialInterface()
+
+# Set the callback for received messages
 interface.onReceive = on_receive
 
-# or sendData to send binary data, see documentations for other options.
-interface.sendText("hello from node 1")
+# Send a message
+interface.sendText("hello mesh")
 
-ourNode = interface.getNode('^local')
-print(f'Our node preferences:{ourNode.localConfig}')
-
-# update a value
-print('Changing a preference...')
-ourNode.localConfig.position.gps_update_interval = 60
-
-print(f'Our node preferences now:{ourNode.localConfig}')
-ourNode.writeConfig("position")
-
-# Keep the script running to listen for messages
-print("🔍 Listening for incoming messages... (Press Ctrl+C to stop)")
+# Keep the script running to listen for incoming messages
 try:
     while True:
-        pass
+        time.sleep(1)
 except KeyboardInterrupt:
-    print("\nExiting...")
-interface.close()
+    # Close the interface when the script is interrupted
+    interface.close()
+    logging.info("Interface closed.")
