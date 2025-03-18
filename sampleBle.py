@@ -1,7 +1,6 @@
 import meshtastic
 import meshtastic.ble_interface
 import time
-import asyncio
 
 # Bluetooth MAC address
 DEVICE_ADDRESS = "CC:BA:97:0E:FF:21"  
@@ -20,7 +19,10 @@ except Exception as e:
     print(f"❌ Failed to connect: {e}")
     exit(1)
 
-# ✅ Step 3: Define a Callback Function for Incoming Messages
+# ✅ Step 3: Send a Test Message
+interface.sendText("Hello from Bluetooth laptop!", ch_index=0)
+
+# ✅ Step 4: Define a Callback Function for Incoming Messages
 def on_receive(packet, iface):
     """Callback function that runs when a message is received"""
     if 'decoded' in packet and 'payload' in packet['decoded']:
@@ -31,9 +33,6 @@ def on_receive(packet, iface):
 
 # ✅ Register the callback to listen for incoming messages
 interface.onReceive = on_receive
-
-# ✅ Step 4: Send a Test Message
-interface.sendText("Hello from Bluetooth laptop!")
 
 # ✅ Step 5: Retrieve Local Node Configuration
 ourNode = interface.getNode('^local')

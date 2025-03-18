@@ -3,17 +3,22 @@ import meshtastic.serial_interface
 
 # By default will try to find a meshtastic device,
 # otherwise provide a device path like /dev/ttyUSB0
-interface = meshtastic.serial_interface.SerialInterface(devPath = "COM12")
+interface = meshtastic.serial_interface.SerialInterface(devPath = "COM11")
 
-def on_receive(packet, interface):
+def on_receive(packet, iface):
     """Callback function that runs when a message is received"""
     if 'decoded' in packet and 'payload' in packet['decoded']:
-        if 'text' in packet['decoded']['payload']:
-            message = packet['decoded']['payload']['text']
-            sender = packet['fromId']
-            print(f"📩 Received from {sender}: {message}")
+        payload = packet['decoded']['payload']
+        if 'text' in payload:
+            message = payload['text']
+        elif 'data' in payload:
+                message = payload['data']
+        else:
+             message = "Unknown message type"
+        sender = packet.get('fromId', 'Unknown')
+        print(f"📩 Received from {sender}: {message}")
 
-#register callback so it listens for incoming messages         
+#register callback so it listens for incoming messages
 interface.onReceive = on_receive
 
 # or sendData to send binary data, see documentations for other options.
@@ -33,8 +38,7 @@ ourNode.writeConfig("position")
 print("🔍 Listening for incoming messages... (Press Ctrl+C to stop)")
 try:
     while True:
-        pass  # Keeps the script running
+        pass
 except KeyboardInterrupt:
     print("\nExiting...")
-
 interface.close()
